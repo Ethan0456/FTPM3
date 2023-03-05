@@ -1,26 +1,31 @@
 package com.example.ftpm3.Screens
 
+import android.content.ContentValues.TAG
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.example.ftpm3.FtpViewModel
+import com.example.ftpm3.`UI-Components`.CustomDialog
 import com.example.ftpm3.`UI-Components`.SelectableItem
 import it.sauronsoftware.ftp4j.FTPFile
-import org.w3c.dom.Text
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +39,7 @@ fun MainScreen(
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
     ) {
         CenterAlignedTopAppBar(
             modifier = Modifier
@@ -163,6 +168,104 @@ fun MainScreen(
                 }
             }
         )
+    }
+    var showDialog = remember { mutableStateOf(false) }
+    BackHandler {
+        Log.i(TAG,"${ftpViewModel.defaultDir.value.toString()}")
+        Log.i(TAG,"${ftpViewModel._currentDirectory.value.toString()}")
+        if (ftpViewModel._currentDirectory.value != ftpViewModel.defaultDir.value) {
+            Log.i(TAG,"BackPressed")
+            ftpViewModel._currentDirectory.setValue(ftpViewModel.removeLastDirectoryFromPath(ftpViewModel._currentDirectory.value.toString()))
+            ftpViewModel.listDir()
+        }
+        else {
+            showDialog.value = true
+        }
+    }
+//    ExitDialogBox(
+//        ftpViewModel = ftpViewModel,
+//        navHostController = navHostController,
+//        showDialog = showDialog
+//    )
+
+    CustomDialog(
+        ftpViewModel = ftpViewModel,
+        navHostController = navHostController,
+        showDialog = showDialog,
+        title = "Do You Want to Disconnect?",
+        composable = {
+            Row(
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .padding(16.dp),
+                    onClick = {
+                        showDialog.value = false
+                    }
+                ) {
+                    Text("No")
+                }
+                Button(
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .padding(16.dp),
+                    onClick = {
+                        navHostController.popBackStack()
+                        ftpViewModel.disconnect()
+                    }
+                ) {
+                    Text("Yes")
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun ExitDialogBox(
+    ftpViewModel: FtpViewModel,
+    navHostController: NavHostController,
+    showDialog: MutableState<Boolean>
+) {
+    if (showDialog.value == true) {
+        Dialog(
+            onDismissRequest = { showDialog.value = false }
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .wrapContentSize()
+                    .clip(RoundedCornerShape(10.dp)),
+                verticalArrangement = Arrangement.SpaceAround,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Do you want to Disconnect?")
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Button(
+                        modifier = Modifier.width(100.dp),
+                        onClick = {
+                            showDialog.value = false
+                        }
+                    ) {
+                        Text("No")
+                    }
+                    Button(
+                        modifier = Modifier.width(100.dp),
+                        onClick = {
+                            ftpViewModel.disconnect()
+                            navHostController.popBackStack()
+                        }
+                    ) {
+                        Text("Yes")
+                    }
+                }
+            }
+        }
     }
 }
 //            items(items=listOfFilesObserver.value!!.toList()) { file ->

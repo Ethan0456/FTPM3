@@ -52,7 +52,6 @@ dependencies {
     def nav_version = "2.5.3"
     def lifecycle_version = "2.5.1"
 
-    implementation 'com.github.jitpack:gradle-simple:2.0'
     implementation "androidx.navigation:navigation-compose:$nav_version"
    // ViewModel
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"

@@ -30,6 +30,8 @@ fun LoginScreen(
         val port: String by ftpViewModel.port.observeAsState("")
         val username: String by ftpViewModel.username.observeAsState("")
         val password: String by ftpViewModel.password.observeAsState("")
+        val defaultDir: String by ftpViewModel.defaultDir.observeAsState("")
+
         OutlinedTextField(
             value = ip,
             label = { Text("IP") },
@@ -57,6 +59,13 @@ fun LoginScreen(
             singleLine = true,
             shape = RoundedCornerShape(size = 10.dp),
             onValueChange = { ftpViewModel.onValueChanged("password",it) },
+        )
+        OutlinedTextField(
+            value = defaultDir,
+            label = { Text("Default Directory") },
+            singleLine = true,
+            shape = RoundedCornerShape(size = 10.dp),
+            onValueChange = { ftpViewModel.onValueChanged("defaultDir",it) },
         )
 
         var clicked by remember { mutableStateOf(false) }

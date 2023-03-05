@@ -14,13 +14,14 @@ import kotlinx.coroutines.*
 
 
 class FtpViewModel: ViewModel() {
-    private var _ip = MutableLiveData("192.168.1.100")
+    private var _ip = MutableLiveData("192.168.1.101")
     private var _port = MutableLiveData("21")
-    private var _username = MutableLiveData("abhi")
-    private var _password = MutableLiveData("AM*^(-)0418080904")
+    private var _username = MutableLiveData("ethan")
+    private var _password = MutableLiveData("ad")
+    private var _defaultDir = MutableLiveData("/home/ethan/")
     private var repository: Repository = Repository()
 
-    var _currentDirectory = MutableLiveData("/")
+    var _currentDirectory = MutableLiveData(_defaultDir.value)
     var _listOfFiles: MutableLiveData<List<FTPFile>> = MutableLiveData<List<FTPFile>>(listOf())
     var _selectedFiles: MutableLiveData<List<FTPFile>> = MutableLiveData<List<FTPFile>>(listOf())
     val downloadsDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
@@ -30,18 +31,18 @@ class FtpViewModel: ViewModel() {
     val port: LiveData<String> = _port
     val username: LiveData<String> = _username
     val password: LiveData<String> = _password
+    val defaultDir: LiveData<String> = _defaultDir
+    fun removeLastDirectoryFromPath(path: String): String {
+        val index = path.lastIndexOf('/')
+        if (index == -1) return path
+        val lastSecondIndex = path.lastIndexOf('/', index-1)
+        return if (index >= 0) {
+            path.substring(0, lastSecondIndex+1)
+        } else {
+            path
+        }
+    }
 
-
-//    private fun getInstance() {
-//        runBlocking {
-//            clientInstance = repository.getClientInstance()
-//        }
-//    }
-
-//    fun checkClientInstance(): FTPClient {
-//        getInstance()
-//        return clientInstance
-//    }
 
     fun getClientInstance() = repository.client
 
@@ -58,11 +59,11 @@ class FtpViewModel: ViewModel() {
             "port" -> _port.value = newTxt
             "username" -> _username.value = newTxt
             "password" -> _password.value = newTxt
+            "defaultDir" -> _defaultDir.value = newTxt
         }
     }
 
     fun onConnectClicked(ftpViewModel: FtpViewModel, navHostController: NavHostController) {
-//        if (!ftpViewModel.checkClientInstance().isConnected) {
         if (!ftpViewModel.getClientInstance().isConnected) {
             try {
                 Log.i("Tag","OnConnectClicked...")
@@ -73,14 +74,11 @@ class FtpViewModel: ViewModel() {
                 e.printStackTrace()
             }
         }
-        else {
-//            ftpViewModel.listDir()
-        }
     }
 
     fun connect() {
         Log.i("Tag","ftpview connect...")
-        val res = CoroutineScope(Dispatchers.Main).launch {
+        runBlocking {
             repository.connect(ip.value.toString(), port.value!!.toInt(), username.value.toString(), password.value.toString())
         }
     }
@@ -99,7 +97,6 @@ class FtpViewModel: ViewModel() {
     }
 
     fun downloadFile(remoteFilePath: String, fileName: String) {
-//            Files.createDirectory(Paths.get(downloadsPath+"/"+"FTPM3"))
         CoroutineScope(Dispatchers.Main).launch {
             repository.downloadFile(remoteFilePath, File("${downloadsPath+"/"+fileName}"))
         }
