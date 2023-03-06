@@ -1,19 +1,24 @@
 package com.example.ftpm3
 
+import android.net.Uri
 import android.os.Environment
 import android.util.Log
+import android.widget.Toast
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import it.sauronsoftware.ftp4j.FTPFile
 import java.io.File
-import androidx.compose.runtime.*
 import androidx.lifecycle.LiveData
 import androidx.navigation.NavHostController
 import com.example.ftpm3.Screens.Screens
 import kotlinx.coroutines.*
+import java.io.FileNotFoundException
 
 
-class FtpViewModel: ViewModel() {
+class FtpViewModel(): ViewModel() {
     private var _ip = MutableLiveData("192.168.1.101")
     private var _port = MutableLiveData("21")
     private var _username = MutableLiveData("ethan")
@@ -21,11 +26,12 @@ class FtpViewModel: ViewModel() {
     private var _defaultDir = MutableLiveData("/home/ethan/")
     private var repository: Repository = Repository()
 
-    var _currentDirectory = MutableLiveData(_defaultDir.value)
+    lateinit var _currentDirectory: MutableLiveData<String>
     var _listOfFiles: MutableLiveData<List<FTPFile>> = MutableLiveData<List<FTPFile>>(listOf())
     var _selectedFiles: MutableLiveData<List<FTPFile>> = MutableLiveData<List<FTPFile>>(listOf())
     val downloadsDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
     val downloadsPath = downloadsDirectory.getAbsolutePath();
+    var selectedFilePath: File = File("")
 
     val ip: LiveData<String> = _ip
     val port: LiveData<String> = _port
@@ -43,15 +49,7 @@ class FtpViewModel: ViewModel() {
         }
     }
 
-
     fun getClientInstance() = repository.client
-
-    fun selectFile() {
-//        var chooseFile = Intent(Intent.ACTION_GET_CONTENT)
-//        chooseFile.type = "*/*"
-//        var chooseFileIntent = Intent.createChooser(chooseFile, "Choose a file")
-//        startActivityForResult(this, chooseFileIntent)
-    }
 
     fun onValueChanged(field: String, newTxt: String) {
         when(field) {
@@ -59,7 +57,10 @@ class FtpViewModel: ViewModel() {
             "port" -> _port.value = newTxt
             "username" -> _username.value = newTxt
             "password" -> _password.value = newTxt
-            "defaultDir" -> _defaultDir.value = newTxt
+            "defaultDir" -> {
+                _defaultDir.value = newTxt
+                _currentDirectory = _defaultDir.value
+            }
         }
     }
 
@@ -99,6 +100,17 @@ class FtpViewModel: ViewModel() {
     fun downloadFile(remoteFilePath: String, fileName: String) {
         CoroutineScope(Dispatchers.Main).launch {
             repository.downloadFile(remoteFilePath, File("${downloadsPath+"/"+fileName}"))
+        }
+    }
+
+    fun uploadFile() {
+        CoroutineScope(Dispatchers.Main).launch {
+            repository.uploadFile(selectedFilePath)
+        }
+    }
+    fun uploadFile(file: File) {
+        CoroutineScope(Dispatchers.Main).launch {
+            repository.uploadFile(file)
         }
     }
 }

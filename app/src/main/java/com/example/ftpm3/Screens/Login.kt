@@ -25,7 +25,6 @@ fun LoginScreen(
         verticalArrangement = Arrangement.SpaceAround,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-//        val ftpViewModel: FtpViewModel = FtpViewModel()
         val ip: String by ftpViewModel.ip.observeAsState("")
         val port: String by ftpViewModel.port.observeAsState("")
         val username: String by ftpViewModel.username.observeAsState("")
