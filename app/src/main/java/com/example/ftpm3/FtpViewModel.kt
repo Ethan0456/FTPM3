@@ -59,7 +59,6 @@ class FtpViewModel(): ViewModel() {
             "password" -> _password.value = newTxt
             "defaultDir" -> {
                 _defaultDir.value = newTxt
-                _currentDirectory = _defaultDir.value
             }
         }
     }
@@ -69,6 +68,7 @@ class FtpViewModel(): ViewModel() {
             try {
                 Log.i("Tag","OnConnectClicked...")
                 ftpViewModel.connect()
+                _currentDirectory = MutableLiveData(_defaultDir.value)
                 ftpViewModel.listDir()
                 navHostController.navigate(Screens.Main.route)
             } catch(e: Exception) {
