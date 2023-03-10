@@ -38,6 +38,7 @@ class FtpViewModel(): ViewModel() {
     val username: LiveData<String> = _username
     val password: LiveData<String> = _password
     val defaultDir: LiveData<String> = _defaultDir
+
     fun removeLastDirectoryFromPath(path: String): String {
         val index = path.lastIndexOf('/')
         if (index == -1) return path
@@ -57,9 +58,7 @@ class FtpViewModel(): ViewModel() {
             "port" -> _port.value = newTxt
             "username" -> _username.value = newTxt
             "password" -> _password.value = newTxt
-            "defaultDir" -> {
-                _defaultDir.value = newTxt
-            }
+            "defaultDir" -> _defaultDir.value = newTxt
         }
     }
 
