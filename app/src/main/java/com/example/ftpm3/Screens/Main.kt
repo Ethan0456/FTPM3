@@ -5,13 +5,12 @@ import android.content.ContentResolver
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.net.Uri
-import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -21,16 +20,18 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.ftpm3.FtpViewModel
+import com.example.ftpm3.R
 import com.example.ftpm3.`UI-Components`.CustomDialog
 import com.example.ftpm3.`UI-Components`.SelectableItem
 import it.sauronsoftware.ftp4j.FTPFile
@@ -47,6 +48,8 @@ fun MainScreen(
     var listOfFilesObserver = ftpViewModel._listOfFiles.observeAsState<List<FTPFile>>()
     var curDirObserver = ftpViewModel._currentDirectory.observeAsState()
     var selectedFilesObserver = ftpViewModel._selectedFiles.observeAsState()
+
+    val scrollState = rememberScrollState()
 
     Column(
         verticalArrangement = Arrangement.SpaceAround,
@@ -70,12 +73,14 @@ fun MainScreen(
                 Column(horizontalAlignment = Alignment.Start) {
                     Text(
                         text = "${curDirObserver.value.toString().replace("/"," | ").substring(1)}",
+                        modifier = Modifier.horizontalScroll(scrollState),
                         color = MaterialTheme.colorScheme.primary,
                         style = TextStyle(
                             fontSize = 19.sp,
                             fontWeight = FontWeight.Bold,
                         ),
-                        textAlign = TextAlign.Left
+                        textAlign = TextAlign.Left,
+                        maxLines = 1,
                     )
                 }
             },
@@ -115,33 +120,53 @@ fun MainScreen(
                     val file = listOfFilesObserver.value!![index]
                     val ftype = file.type
                     val isSelected = selectedFilesObserver.value!!.contains(file)
-                SelectableItem (
-                    modifier = Modifier
-                        .padding(5.dp),
 
-                    selected = true,
-                    title = file.name,
-                    subTitle = if (ftype == 1) {
-                        "Directory"
-                    } else {
-                        "File Size ${file.size.toInt()} MB"
-                    },
-                    type = ftype,
-                    checkState = isSelected,
-                    onClick = {
-                        if (ftype == 1) {
-                            ftpViewModel._currentDirectory.setValue(ftpViewModel._currentDirectory.value + file.name + "/")
-                            ftpViewModel.listDir()
-                            Log.i("Tag", "Directory: ${ftpViewModel._currentDirectory.value.toString()}")
-                            Log.i("Tag", file.name)
+                    val fileSizeInKilobytes = file.size / 1024.0
+                    val fileSizeInMegabytes = fileSizeInKilobytes / 1024.0
+                    val fileSizeInGigabytes = fileSizeInMegabytes / 1024.0
+                    val modifiedDate = file.modifiedDate
+
+                    val perfectSize =
+                    if (file.size > 0 && file.size < 999) { String.format("%.2f B", file.size.toFloat()) }
+                    else if (file.size > 999 && fileSizeInKilobytes < 999) { String.format("%.2f KB", fileSizeInKilobytes.toFloat()) }
+                    else if (fileSizeInKilobytes > 999 && fileSizeInMegabytes < 999) { String.format("%.2f MB", fileSizeInMegabytes.toFloat()) }
+                    else { String.format("%.2f GB", fileSizeInGigabytes.toFloat()) }
+
+                    SelectableItem (
+                        icon = (if (ftype == 1) {
+                            painterResource(id = R.drawable.folder)
                         } else {
-                            try {
-                                ftpViewModel.downloadFile(remoteFilePath = curDirObserver.value+"/"+file.name,fileName = file.name)
-                            } catch (e: FileAlreadyExistsException) {
-                                Log.i("Tag", "${file.name} already exists")
+                            painterResource(id = R.drawable.file)
+                        }),
+                        modifier = Modifier
+                            .padding(5.dp),
+                        selected = true,
+                        title = file.name,
+                        subTitle = if (ftype == 1) {
+                            "Directory"
+                        } else {
+                            "Size : $perfectSize\nModified Date : $modifiedDate "
+                        },
+                        type = ftype,
+                        checkState = isSelected,
+                        onClick = {
+                            if (ftype == 1) {
+                                ftpViewModel._currentDirectory.setValue(ftpViewModel._currentDirectory.value + file.name + "/")
+                                ftpViewModel.listDir()
+                                Log.i("Tag", "Directory: ${ftpViewModel._currentDirectory.value.toString()}")
+                                Log.i("Tag", file.name)
+                            } else {
+                                try {
+                                    ftpViewModel.downloadFile(remoteFilePath = curDirObserver.value+"/"+file.name,fileName = file.name)
+                                } catch (e: FileAlreadyExistsException) {
+                                    Log.i("Tag", "${file.name} already exists")
+                                }
                             }
+                        },
+                        onLongPress = {
+
                         }
-                    })
+                    )
                 {
                     b:Boolean ->
                     when(b) {
@@ -154,10 +179,35 @@ fun MainScreen(
         }
         BottomAppBar(
             modifier = Modifier
-                .background(color = MaterialTheme.colorScheme.background)
+                .background(color = Color.Transparent)
                 .weight(1f)
                 .padding(0.dp),
             actions = {
+//                Row(
+//                    modifier = Modifier.weight(8f),
+//                    horizontalArrangement = Arrangement.End,
+//                ) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.addbox),
+//                        modifier = Modifier
+//                            .size(30.dp)
+//                            .padding(start = 3.dp, end = 3.dp)
+//                            .clickable {
+//
+//                            },
+//                        contentDescription = "Add New",
+//                    )
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.sync),
+//                        modifier = Modifier
+//                            .size(30.dp)
+//                            .padding(start = 3.dp, end = 3.dp)
+//                            .clickable {
+//
+//                            },
+//                        contentDescription = "Sync"
+//                    )
+//                }
             },
             floatingActionButton = {
                 CustomFloatingActionButton(
@@ -189,13 +239,13 @@ fun MainScreen(
         title = "Do You Want to Disconnect?",
         composable = {
             Row(
-                horizontalArrangement = Arrangement.SpaceAround,
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Button(
                     modifier = Modifier
-                        .wrapContentSize()
-                        .padding(16.dp),
+                        .wrapContentSize(),
                     onClick = {
                         showDialog.value = false
                     }
@@ -204,8 +254,7 @@ fun MainScreen(
                 }
                 Button(
                     modifier = Modifier
-                        .wrapContentSize()
-                        .padding(16.dp),
+                        .wrapContentSize(),
                     onClick = {
                         navHostController.popBackStack()
                         ftpViewModel.disconnect()
@@ -267,7 +316,7 @@ fun CustomFloatingActionButton(
                 Log.i("Tag", "Uploading")
                 launcher.launch("*/*")
                 if (ftpViewModel.selectedFilePath != null){
-                    Log.i(TAG,"Uploading...${ftpViewModel.selectedFilePath.absolutePath.toString()}")
+                    Log.i(TAG,"Uploading...${ftpViewModel.selectedFilePath.absolutePath}")
                     ftpViewModel.uploadFile()
                 }
             } else {
@@ -285,9 +334,19 @@ fun CustomFloatingActionButton(
         elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
     ) {
         if (selectedFilesObserver.value!!.isEmpty()) {
-            Icon(Icons.Default.KeyboardArrowUp, "Upload File")
+//            Icon(Icons.Default.KeyboardArrowUp, "Upload File")
+            Icon(
+                painter = painterResource(id = R.drawable.upload),
+                modifier = Modifier.size(30.dp),
+                contentDescription = "Visibility Icon"
+            )
         } else {
-            Icon(Icons.Default.KeyboardArrowDown, "Download File")
+//            Icon(Icons.Default.KeyboardArrowDown, "Download File")
+            Icon(
+                painter = painterResource(id = R.drawable.download),
+                modifier = Modifier.size(30.dp),
+                contentDescription = "Visibility Icon"
+            )
         }
     }
 }

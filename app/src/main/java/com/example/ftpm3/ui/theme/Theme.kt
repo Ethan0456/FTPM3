@@ -5,7 +5,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import com.google.accompanist.systemuicontroller.SystemUiController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
@@ -38,8 +37,8 @@ private val LightColors = lightColorScheme(
     inverseSurface = md_theme_light_inverseSurface,
     inversePrimary = md_theme_light_inversePrimary,
     surfaceTint = md_theme_light_surfaceTint,
-//    outlineVariant = md_theme_light_outlineVariant,
-//    scrim = md_theme_light_scrim,
+    outlineVariant = md_theme_light_outlineVariant,
+    scrim = md_theme_light_scrim,
 )
 
 
@@ -71,8 +70,8 @@ private val DarkColors = darkColorScheme(
     inverseSurface = md_theme_dark_inverseSurface,
     inversePrimary = md_theme_dark_inversePrimary,
     surfaceTint = md_theme_dark_surfaceTint,
-//    outlineVariant = md_theme_dark_outlineVariant,
-//    scrim = md_theme_dark_scrim,
+    outlineVariant = md_theme_dark_outlineVariant,
+    scrim = md_theme_dark_scrim,
 )
 
 @Composable
@@ -81,16 +80,16 @@ fun AppTheme(
   content: @Composable() () -> Unit
 ) {
     val systemUiController: SystemUiController = rememberSystemUiController()
-  val colors = if (!useDarkTheme) {
-      systemUiController.setSystemBarsColor(color = LightColors.background)
-    LightColors
-  } else {
-      systemUiController.setSystemBarsColor(color = DarkColors.background)
-    DarkColors
-  }
+    val colors = if (!useDarkTheme) {
+        systemUiController.setSystemBarsColor(color = LightColors.background)
+        LightColors
+    } else {
+        systemUiController.setSystemBarsColor(color = DarkColors.background)
+        DarkColors
+    }
 
-  MaterialTheme(
-    colorScheme = colors,
-    content = content
-  )
+    MaterialTheme(
+        colorScheme = colors,
+        content = content
+    )
 }

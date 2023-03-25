@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -17,32 +18,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewSelectableItem() {
-
-//    var selected by remember { mutableStateOf(false) }
-
-//    SelectableItem(selected = false, title = "Hello There!") {
-//        selected = !selected
-//    }
-}
-
-
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectableItem(
     modifier: Modifier = Modifier,
+    icon: Painter,
     selected: Boolean,
     title: String,
     titleColor: Color =
@@ -62,6 +53,7 @@ fun SelectableItem(
     type: Int = 1,
     checkState: Boolean,
     onClick: () -> Unit,
+    onLongPress: () -> Unit,
     onCheckBoxChecked: (Boolean) -> Unit
 ) {
 
@@ -122,14 +114,26 @@ fun SelectableItem(
             .background(
                 color = MaterialTheme.colorScheme.primaryContainer
             )
+            .pointerInput(Unit) {
+                detectTapGestures(onLongPress = {
+                    onLongPress()
+                })
+            }
             .clickable {
                 onClick()
-            }
+            },
+
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Icon(
+                painter = icon,
+                contentDescription = "Desc",
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 modifier = Modifier.weight(8f),
                 text = title,

@@ -25,7 +25,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ftpm3.Screens.SetupNavGraph
 import com.example.ftpm3.ui.theme.AppTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     private lateinit var navHostController: NavHostController
 

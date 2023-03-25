@@ -10,6 +10,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.TextStyle
@@ -43,6 +44,7 @@ fun CustomDialog(
                     Text(
                         text = title,
                         modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
                             .padding(10.dp),
                         style = TextStyle(
                             fontSize = 20.sp
