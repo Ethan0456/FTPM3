@@ -33,7 +33,7 @@ class Repository {
     }
 
     suspend fun listDirectory(path: String): List<FTPFile> = withContext(Dispatchers.IO) {
-        client.list(path).toList()
+        client.list(path).toList().sortedByDescending { it.type }
     }
 
     suspend fun downloadFile(remoteFile: String, localFile: File) {
